@@ -1,0 +1,133 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title></title>
+    <script src="scripts/processing-1.4.1.js"></script>
+    <script src="scripts/leap.js"></script>
+</head>
+    <body>
+        <canvas id="generative"></canvas>
+    </body>
+    <script type="text/javascript">
+        (function () {
+            var controllerOptions = { enableGestures: true };
+            var canvas = document.getElementById('generative');
+            var context = canvas.getContext('2d');
+            var pjs = new Processing(canvas);
+            var w = window.innerWidth;
+            var h = window.innerHeight;
+            var a = w / 2;
+            var b = h / 2;
+            var c, d, e, f, g;
+            var frameRate = 20;
+            var trampp = 15;
+            var trampn = -15;
+            var curvep = 14;
+            var curven = -14;
+            var colorp = Math.round(random(0, 4)) * 64;
+            var pointing = false;
+            var audio = new Audio('FromDuskTillDawn.mp3');
+
+            Leap.loop(controllerOptions, function(frame) {
+                if (frame.pointables.length > 0) {
+                    var pointable = frame.pointables[0];
+                    a = (w / 2) + (pointable.tipPosition[0] * 3.25);
+                    b = (h / 2) - ((pointable.tipPosition[1] - 150) * 5);
+                    colorp = Math.round(random(0, 4)) * (+pointable.tipPosition[2] * 1.5);
+                    pointing = true;
+                } else {
+                    pointing = false;
+                }
+                if (frame.gestures.length > 0) {
+                    var gesture = frame.gestures[0];
+                    
+                    switch (gesture.type) {
+                        case "keyTap":
+                        case "screenTap":
+                            // change colour
+                            colorp = Math.round(random(0, 4)) * 64;
+                            break;
+                        case "swipe":
+                            // clear screen
+                            context.save();
+                            context.setTransform(1, 0, 0, 1, 0, 0);
+                            context.clearRect(0, 0, canvas.width, canvas.height);
+                            context.restore();
+                            break;
+                    }
+                }
+            });
+                
+            pjs.setup = function() {
+                pjs.size(w, h);
+                pjs.background(255);
+                e = a;
+                f = b;
+
+                pjs.loop();
+            };
+
+            pjs.draw = function () {
+                if (pointing) {
+                    if (audio.paused) {
+                        audio.play();
+                    }
+                    frameRate = frameRate + random(-3.0, 3.0);
+                    if (frameRate < 20) {
+                        frameRate = 20;
+                    }
+                    ;
+                    if (frameRate > 50) {
+                        frameRate = 50;
+                    }
+                    ;
+                    pjs.frameRate(frameRate);
+                    g++;
+                    trampp = random(1.0, 100);
+                    trampn = -trampp;
+                    curvep = random(-50, 50);
+                    curven = -curvep;
+                    pjs.fill(255, 0);
+                    c = a + random(trampn, trampp);
+                    d = b + random(trampn, trampp);
+                    if (g > 900) {
+                        g = 0;
+                    }
+                    if (g == 0 || g == 150 || g == 151 || g == 252 || g == 700 || g == 701) {
+                        c = random(0, w);
+                        d = random(0, h);
+                        curvep = random(w * 0.05, w * 0.07) * (round(random(0, 1)) * 2 - 1);
+                        curven = random(w * 0.05, w * 0.07) * (round(random(0, 1)) * 2 - 1);
+                    }
+                    pjs.strokeWeight(random(0.2, 1.4));
+                    pjs.stroke((colorp + random(0, 24.0)) % 255, random(0, 100.0) + 10, random(0, 170.0) + 80, random(0, 70.0) + 40);
+                    //pjs.stroke(255, 213, 0, random(0, 70.0) + 40);
+                    pjs.bezier(a, b, a + random(curven, curvep), b + random(curven, curvep), c + random(curven, curvep), d + random(curven, curvep), c, d);
+                    if (c > w) {
+                        a = (c - w);
+                    } else if (c < 0) {
+                        a = w - Math.abs(c);
+                    } else {
+                        a = c;
+                    }
+                    if (d > (h - 4)) {
+                        b = (d - h);
+                    } else if (d < 0) {
+                        b = h - 4 - Math.abs(d);
+                    } else {
+                        b = d;
+                    }
+                } else {
+                    audio.pause();
+                }
+            };
+                
+            function random(from, to) {
+                return Math.floor(Math.random() * (to - from + 1) + from);
+            }
+            
+            pjs.setup();
+        })();
+
+    </script>
+</html>
